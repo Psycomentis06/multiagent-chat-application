@@ -1,16 +1,16 @@
+import agent.ChatClientAgent;
 import agent.ChatContainer;
-import agent.ChatManager;
-import gui.ChatWindow;
-import jade.wrapper.StaleProxyException;
+import agent.ChatManagerAgent;
+import jade.wrapper.ControllerException;
 
 public class Main {
     public static void main(String[] args) {
-        ChatContainer chatContainer = new ChatContainer();
+       ChatContainer chatContainer = new ChatContainer();
         try {
-            chatContainer.createAgent(ChatManager.class.getName() + "1", ChatManager.class.getName(), new Object[] {});
-        } catch (StaleProxyException e) {
+            chatContainer.createAgent(ChatManagerAgent.class.getName(), ChatManagerAgent.class.getName(), new Object[]{});
+            chatContainer.createAgent(ChatClientAgent.class.getName(), ChatClientAgent.class.getName(), new Object[]{});
+        } catch (ControllerException e) {
             e.printStackTrace();
         }
-        new ChatWindow();
     }
 }

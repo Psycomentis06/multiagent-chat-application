@@ -1,9 +1,9 @@
 package gui;
 
-import com.formdev.flatlaf.FlatDarculaLaf;
+import agent.ChatClientAgent;
+import agent.EventType;
 import com.formdev.flatlaf.FlatLightLaf;
-import com.formdev.flatlaf.ui.FlatButtonUI;
-import com.formdev.flatlaf.ui.FlatColorChooserUI;
+import jade.gui.GuiEvent;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,7 +11,9 @@ import java.awt.event.*;
 
 public class ChatWindow extends JFrame {
 
-    public ChatWindow() {
+    ChatClientAgent chatClientAgent;
+    public ChatWindow(ChatClientAgent chatClientAgent) {
+        this.chatClientAgent = chatClientAgent;
         FlatLightLaf.setup();
         //FlatDarculaLaf.setup();
         setup();
@@ -104,8 +106,16 @@ public class ChatWindow extends JFrame {
 
 
         // South
-        JButton button = new JButton("Click");
+        JButton button = new JButton("Send");
         JTextField chatInput = new JTextField();
+        button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                GuiEvent event = new GuiEvent(this, EventType.SEND_MSG);
+                chatClientAgent.postGuiEvent(event);
+                chatInput.setText("");
+            }
+        });
 
 
         southPanel.add(chatInput, BorderLayout.CENTER);

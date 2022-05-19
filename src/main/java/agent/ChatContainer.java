@@ -15,6 +15,7 @@ public class ChatContainer {
     public ChatContainer() {
         Runtime rt = Runtime.instance();
         Properties p = new ExtendedProperties();
+        //p.setProperty(Profile.AGENTS, "true");
         p.setProperty(Profile.GUI, "true");
         ProfileImpl pc = new ProfileImpl(p);
         container = rt.createMainContainer(pc);
@@ -25,7 +26,12 @@ public class ChatContainer {
         }
     }
 
-    public AgentController createAgent(String nickname, String className, Object[] args) throws StaleProxyException {
-        return container.createNewAgent(nickname, className, args);
+    public void createAgent(String nickname, String className, Object[] args) throws StaleProxyException {
+        AgentController a = container.createNewAgent(nickname, className, args);
+        a.start();
+    }
+
+    public AgentContainer getContainer() {
+        return container;
     }
 }
