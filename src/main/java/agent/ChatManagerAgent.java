@@ -5,19 +5,13 @@ import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.Vector;
 
 public class ChatManagerAgent extends Agent {
-    private static Vector<ACLMessage> chatMessages;
     private static Set<String> registeredAgents;
 
     public ChatManagerAgent() {
-        chatMessages = new Vector<>(5);
         registeredAgents = new HashSet<>();
     }
 
@@ -28,38 +22,64 @@ public class ChatManagerAgent extends Agent {
             public void action() {
                 // Receive message then send it to it's destination
                 ACLMessage aclMessage = receive();
+
                 if (aclMessage != null) {
-                    String receiverName = "";
-                    String msg = aclMessage.getContent();
-                    System.out.println("Manager: " + msg);
-                    if (msg.startsWith("@")) {
-                        receiverName = msg
-                                .split(" ")[0]
-                                .replace('@', ' ')
-                                .trim();
-                        sendMessage(receiverName, msg);
-                    } else {
-                        defuseMessage(msg);
+                    var msgType = aclMessage.getPerformative();
+                    switch (msgType) {
+                        case ChatACLMessageType.JOINED -> {
+                            String agentName = aclMessage.getSender().getName();
+                            joinRoom(agentName);
+                            defuseMessage(agentName + " joined the chat", ChatACLMessageType.JOINED);
+                        }
+                        case ChatACLMessageType.LEFT -> {
+                            String agentName = aclMessage.getSender().getName();
+                            leaveRoom(agentName);
+                            defuseMessage(agentName + " left the chat", ChatACLMessageType.LEFT);
+                        }
+                        case ChatACLMessageType.MESSAGE -> {
+                            String receiverName = "";
+                            String msg = aclMessage.getContent();
+                            System.out.println("Manager: " + msg);
+                            if (msg.startsWith("@")) {
+                                receiverName = msg
+                                        .split(" ")[0]
+                                        .replace('@', ' ')
+                                        .trim();
+                                sendMessage(receiverName, msg, ChatACLMessageType.MESSAGE);
+                            } else {
+                                defuseMessage(msg, ChatACLMessageType.MESSAGE);
+                            }
+                        }
+                        default -> {
+                        }
                     }
                 }
             }
         });
     }
 
-    public void sendMessage(String to, String msg) {
-        ACLMessage aclMessage = new ACLMessage(ACLMessage.INFORM);
+    public void sendMessage(String to, String msg, int msgType) {
+        ACLMessage aclMessage = new ACLMessage(msgType);
         if (registeredAgents.contains(to)) {
             aclMessage.addReceiver(new AID(to, AID.ISLOCALNAME));
         }
     }
 
-    public void defuseMessage(String msg) {
+    public void defuseMessage(String msg, int msgType) {
         for (String agent :
                 registeredAgents) {
-            ACLMessage message = new ACLMessage(ACLMessage.INFORM);
-            message.addReceiver(new AID(agent, AID.ISLOCALNAME));
+            ACLMessage message = new ACLMessage(msgType);
+            message.addReceiver(new AID(agent, AID.ISGUID));
             message.setContent(msg);
             send(message);
         }
+    }
+
+    public void joinRoom(String agentName) {
+        registeredAgents.add(agentName);
+    }
+
+    public void leaveRoom(String agentName) {
+        registeredAgents.remove(agentName);
     }
 }

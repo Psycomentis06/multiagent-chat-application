@@ -16,7 +16,7 @@ public class ChatContainer {
         Runtime rt = Runtime.instance();
         Properties p = new ExtendedProperties();
         //p.setProperty(Profile.AGENTS, "true");
-        p.setProperty(Profile.GUI, "true");
+        //p.setProperty(Profile.GUI, "true");
         ProfileImpl pc = new ProfileImpl(p);
         container = rt.createMainContainer(pc);
         try {

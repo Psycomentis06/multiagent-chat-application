@@ -17,27 +17,36 @@ public class ChatClientAgent extends GuiAgent {
     protected void setup() {
         chatWindow = new ChatWindow(this);
 
-        addBehaviour(new OneShotBehaviour() {
+        addBehaviour(new OneShotBehaviour(this) {
             @Override
             public void action() {
-                ACLMessage aclMessage = new ACLMessage(ACLMessage.SUBSCRIBE);
-                aclMessage.addReceiver(new AID(ChatManagerAgent.class.getName(), AID.ISLOCALNAME));
-                aclMessage.setContent(getName() + " joined the chat");
-                send(aclMessage);
+                sendMessage(getName() + " joined the chat", ChatACLMessageType.JOINED);
             }
         });
 
-        addBehaviour(new CyclicBehaviour() {
+        addBehaviour(new CyclicBehaviour(this) {
             @Override
             public void action() {
+                ACLMessage aclMessage = receive();
+                if (aclMessage != null) {
+                    switch (aclMessage.getPerformative()) {
+                        case ChatACLMessageType.JOINED -> {
+                            chatWindow.agentConnectedMessage(aclMessage);
+                        }
+                        case ChatACLMessageType.LEFT -> {
+                            chatWindow.agentConnectedMessage(aclMessage);
+                        }
+                        case ChatACLMessageType.MESSAGE -> {
 
+                        }
+                    }
+                }
             }
         });
     }
 
-    public void sendMessage(String msg) {
-        System.out.println("Works");
-        ACLMessage aclMessage = new ACLMessage(ACLMessage.SUBSCRIBE);
+    public void sendMessage(String msg, int msgType) {
+        ACLMessage aclMessage = new ACLMessage(msgType);
         aclMessage.addReceiver(new AID(ChatManagerAgent.class.getName(), AID.ISLOCALNAME));
         aclMessage.setContent(msg);
         send(aclMessage);
