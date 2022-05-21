@@ -15,10 +15,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
+import java.awt.event.*;
 import java.util.Vector;
 
 public class ChatWindow extends JFrame {
@@ -44,6 +41,8 @@ public class ChatWindow extends JFrame {
 
     private JList<String> joinedAgents;
 
+    private JTextField chatInput;
+
     private JPanel mainPanel;
 
     private ChatClientAgent chatClientAgent;
@@ -58,6 +57,7 @@ public class ChatWindow extends JFrame {
         messagePosition = 0;
         connectedAgents = new Vector<>();
         joinedAgents = new JList<>();
+        chatInput = new JTextField();
         messagesPanelBagConstraints = new GridBagConstraints();
         connectedAgentsTitleBarLabel = new JLabel("Connected Agents (" + connectedAgents.size() + ")");
         setup();
@@ -102,7 +102,10 @@ public class ChatWindow extends JFrame {
         disconnectAgent.addMenuListener(new MenuListener() {
             @Override
             public void menuSelected(MenuEvent e) {
-
+                GuiEvent event = new GuiEvent(this, EventType.DISCONNECT);
+                chatClientAgent.postGuiEvent(event);
+                dispatchEvent(new WindowEvent(chatWindowRef, WindowEvent.WINDOW_CLOSING));
+                chatClientAgent.doDelete();
             }
 
             @Override
@@ -168,13 +171,7 @@ public class ChatWindow extends JFrame {
         centerPanel.add(messagesScrollPane, BorderLayout.CENTER);
 
         // Left
-        JList<String> joinedAgents = new JList<>(connectedAgents);
-        joinedAgents.addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                System.out.println(joinedAgents.getSelectedIndex());
-            }
-        });
+
         JScrollPane joinedAgentsScrollPane = new JScrollPane(joinedAgents);
         connectedAgentsJList();
 
@@ -186,7 +183,6 @@ public class ChatWindow extends JFrame {
 
         // South
         JButton button = new JButton("Send");
-        JTextField chatInput = new JTextField();
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -212,16 +208,20 @@ public class ChatWindow extends JFrame {
         connectedAgentsTitleBarLabel.setText("Connected Agents (" + connectedAgents.size() + ")");
     }
 
-    public void addConnectedAgent(String name) {
-        connectedAgents.addElement(name);
-    }
-
     public void connectedAgentsJList() {
         JList<String> joinedAgents = new JList<>(connectedAgents);
         joinedAgents.addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
-                System.out.println(joinedAgents.getSelectedIndex());
+                String chatInputContent = chatInput.getText();
+                String toAgent = "";
+                if (chatInputContent != null && chatInputContent.startsWith("@")) {
+                    toAgent = chatInputContent.trim().split(" ")[0];
+                    chatInputContent = chatInputContent.replace(toAgent, "@" + joinedAgents.getSelectedValue());
+                } else {
+                    chatInputContent = "@" + joinedAgents.getSelectedValue() + chatInputContent;
+                }
+                chatInput.setText(chatInputContent);
             }
         });
         JScrollPane joinedAgentsScrollPane = new JScrollPane(joinedAgents);
@@ -255,7 +255,10 @@ public class ChatWindow extends JFrame {
             //jLabel.setBackground(new Color(44, 44, 84));
             labelPane.add(jLabel, BorderLayout.WEST);
         }
+        messagesPanelBagConstraints.gridy = messagePosition;
+        messagePosition++;
         messagesPanel.add(jLabel, messagesPanelBagConstraints);
+        revalidate();
     }
 
     public void agentConnectedMessage(String msg) {

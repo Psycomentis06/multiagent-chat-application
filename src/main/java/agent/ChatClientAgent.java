@@ -41,7 +41,7 @@ public class ChatClientAgent extends GuiAgent {
                 ACLMessage aclMessage = receive();
                 if (aclMessage != null) {
                     switch (aclMessage.getPerformative()) {
-                        case ChatACLMessageType.JOINED -> {
+                        case ChatACLMessageType.JOINED, ChatACLMessageType.LEFT -> {
                             try {
                                 JoinedLeftMessage joinedLeftMessage = objectMapper.readValue(aclMessage.getContent(), JoinedLeftMessage.class);
                                 chatWindow.agentConnectedMessage(joinedLeftMessage.getMessage());
@@ -57,16 +57,8 @@ public class ChatClientAgent extends GuiAgent {
                                 e.printStackTrace();
                             }
                         }
-                        case ChatACLMessageType.LEFT -> {
-                            try {
-                                JoinedLeftMessage joinedLeftMessage = objectMapper.readValue(aclMessage.getContent(), JoinedLeftMessage.class);
-                                chatWindow.agentConnectedMessage(joinedLeftMessage.getMessage());
-                            } catch (JsonProcessingException e) {
-                                e.printStackTrace();
-                            }
-                        }
                         case ChatACLMessageType.MESSAGE -> {
-
+                            chatWindow.addMessage(aclMessage);
                         }
                     }
                 }
@@ -83,6 +75,16 @@ public class ChatClientAgent extends GuiAgent {
 
     @Override
     protected void onGuiEvent(GuiEvent guiEvent) {
-        System.out.println("Gui Event passed");
+        switch (guiEvent.getType()) {
+            case EventType.CONNECT -> {
+                sendMessage("Agent " + getName() + " Left chat", ChatACLMessageType.JOINED);
+            }
+            case EventType.DISCONNECT -> {
+                sendMessage("Agent " + getName() + " Left chat", ChatACLMessageType.LEFT);
+            }
+            case EventType.SEND_MSG -> {
+                sendMessage("Agent " + getName() + " Left chat", ChatACLMessageType.MESSAGE);
+            }
+        }
     }
 }

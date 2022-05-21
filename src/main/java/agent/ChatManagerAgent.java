@@ -43,7 +43,6 @@ public class ChatManagerAgent extends Agent {
                             } catch (JsonProcessingException e) {
                                 e.printStackTrace();
                             }
-                            //defuseMessage(agentName + " joined the chat", ChatACLMessageType.JOINED);
                         }
                         case ChatACLMessageType.LEFT -> {
                             String agentName = aclMessage.getSender().getName();
@@ -51,7 +50,7 @@ public class ChatManagerAgent extends Agent {
                             try {
                                 JoinedLeftMessage joinedLeftMessage = new JoinedLeftMessage(registeredAgents, agentName, false);
                                 String msg = objectMapper.writeValueAsString(joinedLeftMessage);
-                                defuseMessage(msg, ChatACLMessageType.LEFT);
+                                defuseMessage(msg, ChatACLMessageType.JOINED);
                             } catch (JsonProcessingException e) {
                                 e.printStackTrace();
                             }
