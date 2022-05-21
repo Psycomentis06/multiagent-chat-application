@@ -187,6 +187,7 @@ public class ChatWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 GuiEvent event = new GuiEvent(this, EventType.SEND_MSG);
+                event.addParameter(chatInput.getText());
                 chatClientAgent.postGuiEvent(event);
                 chatInput.setText("");
             }

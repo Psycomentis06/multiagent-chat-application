@@ -76,14 +76,11 @@ public class ChatClientAgent extends GuiAgent {
     @Override
     protected void onGuiEvent(GuiEvent guiEvent) {
         switch (guiEvent.getType()) {
-            case EventType.CONNECT -> {
-                sendMessage("Agent " + getName() + " Left chat", ChatACLMessageType.JOINED);
-            }
             case EventType.DISCONNECT -> {
                 sendMessage("Agent " + getName() + " Left chat", ChatACLMessageType.LEFT);
             }
             case EventType.SEND_MSG -> {
-                sendMessage("Agent " + getName() + " Left chat", ChatACLMessageType.MESSAGE);
+                sendMessage((String) guiEvent.getParameter(0), ChatACLMessageType.MESSAGE);
             }
         }
     }

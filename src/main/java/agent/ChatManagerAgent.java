@@ -58,13 +58,12 @@ public class ChatManagerAgent extends Agent {
                         case ChatACLMessageType.MESSAGE -> {
                             String receiverName = "";
                             String msg = aclMessage.getContent();
-                            System.out.println("Manager: " + msg);
                             if (msg.startsWith("@")) {
                                 receiverName = msg
                                         .split(" ")[0]
                                         .replace('@', ' ')
                                         .trim();
-                                sendMessage(receiverName, msg, ChatACLMessageType.MESSAGE);
+                                sendMessage(getAgentFullName(receiverName), msg, ChatACLMessageType.MESSAGE);
                             } else {
                                 defuseMessage(msg, ChatACLMessageType.MESSAGE);
                             }
@@ -80,8 +79,10 @@ public class ChatManagerAgent extends Agent {
     public void sendMessage(String to, String msg, int msgType) {
         ACLMessage aclMessage = new ACLMessage(msgType);
         if (registeredAgents.contains(to)) {
-            aclMessage.addReceiver(new AID(to, AID.ISLOCALNAME));
+            aclMessage.addReceiver(new AID(to, AID.ISGUID));
         }
+        aclMessage.setContent(msg);
+        send(aclMessage);
     }
 
     public void defuseMessage(String msg, int msgType) {
@@ -100,5 +101,12 @@ public class ChatManagerAgent extends Agent {
 
     public void leaveRoom(String agentName) {
         registeredAgents.remove(agentName);
+    }
+
+    public String getAgentFullName(String name) {
+        return registeredAgents
+                .stream()
+                .filter(s -> s.startsWith(name + "@"))
+                .findFirst().orElse("");
     }
 }
