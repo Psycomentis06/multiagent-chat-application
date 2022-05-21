@@ -1,17 +1,28 @@
 package agent;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import gui.ChatWindow;
 import jade.core.AID;
-import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.gui.GuiAgent;
 import jade.gui.GuiEvent;
 import jade.lang.acl.ACLMessage;
+import utils.JoinedLeftMessage;
+
+import java.util.Vector;
+import java.util.stream.Collectors;
 
 public class ChatClientAgent extends GuiAgent {
 
     transient protected ChatWindow chatWindow;
+
+    ObjectMapper objectMapper;
+
+    public ChatClientAgent() {
+        objectMapper = new ObjectMapper();
+    }
 
     @Override
     protected void setup() {
@@ -31,10 +42,28 @@ public class ChatClientAgent extends GuiAgent {
                 if (aclMessage != null) {
                     switch (aclMessage.getPerformative()) {
                         case ChatACLMessageType.JOINED -> {
-                            chatWindow.agentConnectedMessage(aclMessage);
+                            try {
+                                JoinedLeftMessage joinedLeftMessage = objectMapper.readValue(aclMessage.getContent(), JoinedLeftMessage.class);
+                                chatWindow.agentConnectedMessage(joinedLeftMessage.getMessage());
+                                //chatWindow.setConnectedAgents(new Vector<>(joinedLeftMessage.getAgents()));
+                                chatWindow.setConnectedAgents(
+                                        joinedLeftMessage
+                                                .getAgents()
+                                                .stream()
+                                                .map(joinedLeftMessage::senderNameOnly)
+                                                .collect(Collectors.toCollection(Vector::new))
+                                );
+                            } catch (JsonProcessingException e) {
+                                e.printStackTrace();
+                            }
                         }
                         case ChatACLMessageType.LEFT -> {
-                            chatWindow.agentConnectedMessage(aclMessage);
+                            try {
+                                JoinedLeftMessage joinedLeftMessage = objectMapper.readValue(aclMessage.getContent(), JoinedLeftMessage.class);
+                                chatWindow.agentConnectedMessage(joinedLeftMessage.getMessage());
+                            } catch (JsonProcessingException e) {
+                                e.printStackTrace();
+                            }
                         }
                         case ChatACLMessageType.MESSAGE -> {
 

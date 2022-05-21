@@ -19,6 +19,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
+import java.util.Vector;
 
 public class ChatWindow extends JFrame {
 
@@ -34,10 +35,14 @@ public class ChatWindow extends JFrame {
     private GridBagConstraints messagesPanelBagConstraints;
 
     // Connected Agents list
-    private DefaultListModel<String> connectedAgents;
+    private Vector<String> connectedAgents;
+
+    private JPanel leftPanel;
 
     // Connected Agents title bar label
     private JLabel connectedAgentsTitleBarLabel;
+
+    private JList<String> joinedAgents;
 
     private JPanel mainPanel;
 
@@ -47,20 +52,19 @@ public class ChatWindow extends JFrame {
         chatWindowRef = this;
         this.chatClientAgent = chatClientAgent;
 
-        //FlatLightLaf.setup();
-        //FlatDarculaLaf.setup();
-
         mainPanel = new JPanel();
+        leftPanel= new JPanel();
         messagesPanel = new JPanel();
         messagePosition = 0;
-        connectedAgents = new DefaultListModel<>();
+        connectedAgents = new Vector<>();
+        joinedAgents = new JList<>();
         messagesPanelBagConstraints = new GridBagConstraints();
         connectedAgentsTitleBarLabel = new JLabel("Connected Agents (" + connectedAgents.size() + ")");
         setup();
     }
 
     public void setup() {
-        setTitle("Agents chat");
+        setTitle(chatClientAgent.getName());
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setJMenuBar(createJMenuBar());
@@ -140,7 +144,7 @@ public class ChatWindow extends JFrame {
         mainPanel = new JPanel(new BorderLayout());
         JPanel centerPanel = new JPanel(new BorderLayout());
         JPanel southPanel = new JPanel(new BorderLayout());
-        JPanel leftPanel = new JPanel(new BorderLayout());
+        leftPanel = new JPanel(new BorderLayout());
 
         // Center
         messagesPanel.setLayout(new GridBagLayout());
@@ -172,10 +176,8 @@ public class ChatWindow extends JFrame {
             }
         });
         JScrollPane joinedAgentsScrollPane = new JScrollPane(joinedAgents);
+        connectedAgentsJList();
 
-        for (int i = 0; i < 100; i++) {
-            connectedAgents.addElement("Agent N°" + i);
-        }
         connectedAgentsTitleBarLabel.setText("Connected Agents (" + connectedAgents.size() + ")");
         connectedAgentsTitleBarLabel.setFont(connectedAgentsTitleBarLabel.getFont().deriveFont(20f));
         connectedAgentsTitleBarLabel.setBorder(new EmptyBorder(0, 5, 0, 5));
@@ -214,6 +216,26 @@ public class ChatWindow extends JFrame {
         connectedAgents.addElement(name);
     }
 
+    public void connectedAgentsJList() {
+        JList<String> joinedAgents = new JList<>(connectedAgents);
+        joinedAgents.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                System.out.println(joinedAgents.getSelectedIndex());
+            }
+        });
+        JScrollPane joinedAgentsScrollPane = new JScrollPane(joinedAgents);
+        leftPanel.add(joinedAgentsScrollPane, 0);
+    }
+
+    public void setConnectedAgents(Vector<String> connectedAgents) {
+        this.connectedAgents = connectedAgents;
+        joinedAgents.setListData(connectedAgents);
+        updateConnectedAgentsTitle();
+        connectedAgentsJList();
+        revalidate();
+    }
+
     public void removeDisconnectedAgent(String name) {
         connectedAgents.removeElement(name);
     }
@@ -236,8 +258,8 @@ public class ChatWindow extends JFrame {
         messagesPanel.add(jLabel, messagesPanelBagConstraints);
     }
 
-    public void agentConnectedMessage(ACLMessage msg) {
-        JLabel jLabel = new JLabel(msg.getContent());
+    public void agentConnectedMessage(String msg) {
+        JLabel jLabel = new JLabel(msg);
         jLabel.setOpaque(true);
         jLabel.setHorizontalTextPosition(JLabel.CENTER);
         jLabel.setForeground(new Color(127, 140, 141));

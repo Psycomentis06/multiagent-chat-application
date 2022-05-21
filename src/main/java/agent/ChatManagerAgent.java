@@ -1,18 +1,25 @@
 package agent;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
+import utils.JoinedLeftMessage;
 
+import javax.swing.*;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
 public class ChatManagerAgent extends Agent {
     private static Set<String> registeredAgents;
+    ObjectMapper objectMapper;
 
     public ChatManagerAgent() {
         registeredAgents = new HashSet<>();
+        objectMapper = new ObjectMapper();
     }
 
     @Override
@@ -29,12 +36,25 @@ public class ChatManagerAgent extends Agent {
                         case ChatACLMessageType.JOINED -> {
                             String agentName = aclMessage.getSender().getName();
                             joinRoom(agentName);
-                            defuseMessage(agentName + " joined the chat", ChatACLMessageType.JOINED);
+                            try {
+                                JoinedLeftMessage joinedLeftMessage = new JoinedLeftMessage(registeredAgents, agentName, true);
+                                String msg = objectMapper.writeValueAsString(joinedLeftMessage);
+                                defuseMessage(msg, ChatACLMessageType.JOINED);
+                            } catch (JsonProcessingException e) {
+                                e.printStackTrace();
+                            }
+                            //defuseMessage(agentName + " joined the chat", ChatACLMessageType.JOINED);
                         }
                         case ChatACLMessageType.LEFT -> {
                             String agentName = aclMessage.getSender().getName();
                             leaveRoom(agentName);
-                            defuseMessage(agentName + " left the chat", ChatACLMessageType.LEFT);
+                            try {
+                                JoinedLeftMessage joinedLeftMessage = new JoinedLeftMessage(registeredAgents, agentName, false);
+                                String msg = objectMapper.writeValueAsString(joinedLeftMessage);
+                                defuseMessage(msg, ChatACLMessageType.LEFT);
+                            } catch (JsonProcessingException e) {
+                                e.printStackTrace();
+                            }
                         }
                         case ChatACLMessageType.MESSAGE -> {
                             String receiverName = "";
