@@ -2,7 +2,7 @@
 
 Simple Java Swing + JADE Multi-Chat application
 
-####Features : 
+#### Features : 
 
 * Multi-users|agents : You can create | initiate many users
 
