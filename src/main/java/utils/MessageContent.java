@@ -37,6 +37,10 @@ public class MessageContent {
         return sender;
     }
 
+    public String senderNameOnly(String sender) {
+        return sender.split("@")[0];
+    }
+
     public void setSender(String sender) {
         this.sender = sender;
     }

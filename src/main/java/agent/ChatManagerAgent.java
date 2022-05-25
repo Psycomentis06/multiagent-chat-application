@@ -7,6 +7,7 @@ import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import utils.JoinedLeftMessage;
+import utils.MessageContent;
 
 import javax.swing.*;
 import java.util.HashMap;
@@ -58,14 +59,21 @@ public class ChatManagerAgent extends Agent {
                         case ChatACLMessageType.MESSAGE -> {
                             String receiverName = "";
                             String msg = aclMessage.getContent();
+                            MessageContent messageContent = new MessageContent(msg, aclMessage.getSender().getName());
+                            String jsonContent = "";
+                            try {
+                                jsonContent = objectMapper.writeValueAsString(messageContent);
+                            } catch (JsonProcessingException e) {
+                                e.printStackTrace();
+                            }
                             if (msg.startsWith("@")) {
                                 receiverName = msg
                                         .split(" ")[0]
                                         .replace('@', ' ')
                                         .trim();
-                                sendMessage(getAgentFullName(receiverName), msg, ChatACLMessageType.MESSAGE);
+                                sendMessage(getAgentFullName(receiverName), jsonContent, ChatACLMessageType.MESSAGE);
                             } else {
-                                defuseMessage(msg, ChatACLMessageType.MESSAGE);
+                                defuseMessage(jsonContent, ChatACLMessageType.MESSAGE);
                             }
                         }
                         default -> {

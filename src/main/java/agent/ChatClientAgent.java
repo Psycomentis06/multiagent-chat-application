@@ -10,6 +10,7 @@ import jade.gui.GuiAgent;
 import jade.gui.GuiEvent;
 import jade.lang.acl.ACLMessage;
 import utils.JoinedLeftMessage;
+import utils.MessageContent;
 
 import java.util.Vector;
 import java.util.stream.Collectors;
@@ -58,7 +59,12 @@ public class ChatClientAgent extends GuiAgent {
                             }
                         }
                         case ChatACLMessageType.MESSAGE -> {
-                            chatWindow.addMessage(aclMessage);
+                            try {
+                                MessageContent messageContent = objectMapper.readValue(aclMessage.getContent(), MessageContent.class);
+                                chatWindow.addMessage(messageContent);
+                            } catch (JsonProcessingException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                 }

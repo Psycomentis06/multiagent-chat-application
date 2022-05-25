@@ -3,10 +3,9 @@ package gui;
 import agent.ChatClientAgent;
 import agent.ChatContainerSingleton;
 import agent.EventType;
-import com.formdev.flatlaf.FlatLightLaf;
 import jade.gui.GuiEvent;
-import jade.lang.acl.ACLMessage;
 import jade.wrapper.StaleProxyException;
+import utils.MessageContent;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -52,7 +51,7 @@ public class ChatWindow extends JFrame {
         this.chatClientAgent = chatClientAgent;
 
         mainPanel = new JPanel();
-        leftPanel= new JPanel();
+        leftPanel = new JPanel();
         messagesPanel = new JPanel();
         messagePosition = 0;
         connectedAgents = new Vector<>();
@@ -119,7 +118,7 @@ public class ChatWindow extends JFrame {
             }
         });
 
-        JMenu exit = new JMenu("Exit");
+        JMenu exit = new JMenu("Close All & Exit");
         exit.addMenuListener(new MenuListener() {
             @Override
             public void menuSelected(MenuEvent e) {
@@ -186,10 +185,13 @@ public class ChatWindow extends JFrame {
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                GuiEvent event = new GuiEvent(this, EventType.SEND_MSG);
-                event.addParameter(chatInput.getText());
-                chatClientAgent.postGuiEvent(event);
-                chatInput.setText("");
+                String msgContent = chatInput.getText();
+                if (msgContent.length() > 0) {
+                    GuiEvent event = new GuiEvent(this, EventType.SEND_MSG);
+                    event.addParameter(msgContent);
+                    chatClientAgent.postGuiEvent(event);
+                    chatInput.setText("");
+                }
             }
         });
 
@@ -241,13 +243,20 @@ public class ChatWindow extends JFrame {
         connectedAgents.removeElement(name);
     }
 
-    public void addMessage(ACLMessage msg) {
-        JLabel jLabel = new JLabel(msg.getContent());
+    public void addMessage(MessageContent msg) {
+        String msgToDisplay = String.format("<html>" +
+                "-----------------------------------<br>" +
+                "Message : %s <br>" +
+                "Sent By: %s <br>" +
+                "%s <br>" +
+                "-----------------------------------" +
+                "</html>", msg.getMessage(), msg.senderNameOnly(msg.getSender()), msg.getDate());
+        JLabel jLabel = new JLabel(msgToDisplay);
         jLabel.setOpaque(true);
         jLabel.setHorizontalTextPosition(JLabel.LEFT);
         JPanel labelPane = new JPanel(new BorderLayout());
-
-        if (chatClientAgent.getName().equals(msg.getSender().getName())) {
+        System.out.println();
+        if (chatClientAgent.getName().equals(msg.getSender())) {
             jLabel.setHorizontalAlignment(JLabel.RIGHT);
             //jLabel.setBackground(new Color(71, 71, 135));
             labelPane.add(jLabel, BorderLayout.EAST);
